@@ -41,9 +41,9 @@ Future<void> main(List<String> args) async {
       defaultsTo: '2');
   final result = parser.parse(args);
 
-  final baseDir = result[ARG_BASE_DIR] as String;
-  final framesDir = result[ARG_FRAMES_DIR] as String;
-  final chromeBinary = result[ARG_CHROME_BINARY] as String;
+  final baseDir = result[ARG_BASE_DIR] as String?;
+  final framesDir = result[ARG_FRAMES_DIR] as String?;
+  final chromeBinary = result[ARG_CHROME_BINARY] as String?;
   final pixelRatio = double.tryParse(result[ARG_PIXEL_RATIO].toString());
   if (baseDir == null ||
       framesDir == null ||
@@ -134,7 +134,7 @@ Future<void> runFrame(String baseDir, String framesDirPath, String chromeBinary,
   await tempDir.delete(recursive: true);
 }
 
-Future<Map<String, String>> _parseStrings(File file) async {
+Future<Map<String, String>?> _parseStrings(File file) async {
   final strings = <String, String>{};
   if (!file.existsSync()) {
     return null;

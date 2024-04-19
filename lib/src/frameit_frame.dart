@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:collection/collection.dart';
 import 'package:frameit_chrome/src/frame_colors.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -18,7 +19,7 @@ class FramesProvider {
 
   final List<Frame> _frames;
 
-  static MapEntry<String, String> _frameInfo(
+  static MapEntry<String, String?>? _frameInfo(
       String deviceName, String fileBasename) {
     if (fileBasename.startsWith('Apple ') && !deviceName.startsWith('Apple ')) {
       fileBasename = fileBasename.replaceAll('Apple ', '');
@@ -47,17 +48,18 @@ class FramesProvider {
 
     final offsetsFile = path.join(baseDir.path, 'offsets.json');
     final offsetJson = json.decode(await File(offsetsFile).readAsString())
-        as Map<String, Object>;
+        as Map<String, dynamic>;
     final offsets =
-        (offsetJson['portrait'] as Map<String, Object>).entries.map((e) {
-      final map = e.value as Map<String, Object>;
+        (offsetJson['portrait'] as Map<String, dynamic>).entries.map((e) {
+      final map = e.value as Map<String, dynamic>;
 
       final f = frameImages.firstWhere(
           (frame) =>
               _frameInfo(e.key, path.basenameWithoutExtension(frame.path)) !=
               null, orElse: () {
         _logger.warning('Cannot find ${e.key} image.');
-        return null;
+        // return null;
+        return File('');
       });
       if (f == null) {
         return null;
@@ -72,8 +74,8 @@ class FramesProvider {
         throw StateError('Invalid offset: $offsetString');
       }
       // _logger.info('matches:$offsetMatch ${offsetMatch.groupCount}');
-      final offsetX = int.parse(offsetMatch.group(1));
-      final offsetY = int.parse(offsetMatch.group(2));
+      final offsetX = int.parse(offsetMatch.group(1) ?? '');
+      final offsetY = int.parse(offsetMatch.group(2) ?? '');
 
       return Frame(
           name: e.key,
@@ -83,18 +85,21 @@ class FramesProvider {
           width: int.parse(map['width'].toString()),
           image: f);
     });
-    final frames = offsets.where((element) => element != null).toList();
+    final frames =
+        offsets.where((element) => element != null).whereNotNull().toList();
     frames.sort((a, b) => -a.nameMatch.compareTo(b.nameMatch));
     return FramesProvider._(frames);
   }
 
-  Frame frameForScreenshot(String screenshotName) {
+  Frame? frameForScreenshot(String screenshotName) {
     final match = _prepareString(screenshotName);
-    return _frames.firstWhere((element) => match.contains(element.nameMatch),
-        orElse: () {
-      _logger.finest('unable to find frame for $match');
-      return null;
-    });
+    return _frames.firstWhere(
+      (element) => match.contains(element.nameMatch),
+      //     orElse: () {
+      //   _logger.finest('unable to find frame for $match');
+      //   return null;
+      // }
+    );
   }
 
 // void
@@ -107,12 +112,12 @@ enum Orientation {
 
 class Frame {
   Frame({
-    @required this.name,
-    @required this.orientation,
-    @required this.offsetX,
-    @required this.offsetY,
-    @required this.width,
-    @required this.image,
+    required this.name,
+    required this.orientation,
+    required this.offsetX,
+    required this.offsetY,
+    required this.width,
+    required this.image,
   }) : nameMatch = _prepareString(name);
 
   final String name;

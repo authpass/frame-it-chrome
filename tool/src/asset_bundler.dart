@@ -9,7 +9,7 @@ import 'package:recase/recase.dart';
 import 'package:source_gen/source_gen.dart';
 
 class AssetBundler extends Generator {
-  AssetBundler({@required this.filePattern});
+  AssetBundler({required this.filePattern});
 
   // final String dartFile;
   final String filePattern;

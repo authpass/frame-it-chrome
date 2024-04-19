@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
@@ -18,10 +19,10 @@ class FrameConfig {
 
   Map<String, dynamic> toJson() => _$FrameConfigToJson(this);
 
-  final List<FileNameMapping> rewrite;
-  final Map<String, FrameImage> images;
+  final List<FileNameMapping>? rewrite;
+  final Map<String, FrameImage>? images;
 
-  static Future<FrameConfig> load(String baseDir) async {
+  static Future<FrameConfig?> load(String baseDir) async {
     final configFile = File(path.join(baseDir, FrameConfig.FILE_NAME));
     if (!configFile.existsSync()) {
       return null;
@@ -30,10 +31,9 @@ class FrameConfig {
         loadYaml(await configFile.readAsString()) as Map);
   }
 
-  FrameImage findImageConfig(String screenshotName) {
-    return images.entries
-        .firstWhere((element) => screenshotName.contains(element.key),
-            orElse: () => null)
+  FrameImage? findImageConfig(String screenshotName) {
+    return images?.entries
+        .firstWhereOrNull((element) => screenshotName.contains(element.key))
         ?.value;
   }
 }
@@ -57,14 +57,14 @@ class FileNameMapping {
   factory FileNameMapping.fromJson(Map json) => _$FileNameMappingFromJson(json);
   Map<String, dynamic> toJson() => _$FileNameMappingToJson(this);
 
-  final String pattern;
-  final String replace;
+  final String? pattern;
+  final String? replace;
   // final bool duplicate;
   // final bool exclude;
-  final FileAction action;
+  final FileAction? action;
 
-  RegExp _patternRegExp;
-  RegExp get patternRegExp => _patternRegExp ??= RegExp(pattern);
+  RegExp? _patternRegExp;
+  RegExp get patternRegExp => _patternRegExp ??= RegExp(pattern ?? '');
 }
 
 @JsonSerializable(nullable: true, anyMap: true)
@@ -81,17 +81,17 @@ class FrameImage {
   Map<String, dynamic> toJson() => _$FrameImageToJson(this);
 
   /// Crop with of the final image. (null for using the original width)
-  final int cropWidth;
+  final int? cropWidth;
 
   /// Crop height of the final image. (null for using the original width)
-  final int cropHeight;
+  final int? cropHeight;
 
   /// device name used to look up correct frame.
-  final String device;
+  final String? device;
 
   /// Optional label used only for the `_preview.html`
-  final String previewLabel;
+  final String? previewLabel;
 
   /// Allows customizing the css.
-  final String css;
+  final String? css;
 }
