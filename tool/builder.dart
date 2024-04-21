@@ -5,7 +5,7 @@ import 'src/asset_bundler.dart';
 
 extension on BuilderOptions {
   String requireConfig(String name) {
-    final ret = config[name] as String;
+    final ret = config[name] as String?;
     if (ret == null) {
       throw StateError(
           'Please specify `filePattern` $config (tried to get $name)');

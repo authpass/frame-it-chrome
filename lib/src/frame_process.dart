@@ -4,7 +4,6 @@ import 'package:frameit_chrome/src/config.dart';
 import 'package:frameit_chrome/src/frameit_frame.dart';
 import 'package:image/image.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:quiver/check.dart';
 import 'package:supercharged_dart/supercharged_dart.dart';
@@ -13,21 +12,21 @@ final _logger = Logger('process_screenshots');
 
 class FrameProcess {
   FrameProcess({
-    @required this.workingDir,
+    required this.workingDir,
     this.config,
-    @required this.chromeBinary,
-    @required this.framesProvider,
-    this.pixelRatio,
+    required this.chromeBinary,
+    required this.framesProvider,
+    this.pixelRatio = 1.0,
   });
 
   final Directory workingDir;
-  final FrameConfig config;
+  final FrameConfig? config;
   final String chromeBinary;
   final FramesProvider framesProvider;
   final double pixelRatio;
   bool validatedPixelRatio = false;
 
-  List<String> rewriteScreenshotName(String name) {
+  List<String>? rewriteScreenshotName(String name) {
     if (name.contains('framed')) {
       return null;
     }
@@ -47,7 +46,7 @@ class FrameProcess {
       }
       var newName = name;
       if (r.replace != null) {
-        newName = name.replaceAll(r.patternRegExp, r.replace);
+        newName = name.replaceAll(r.patternRegExp, r.replace ?? '');
       }
       switch (r.action) {
         case FileAction.duplicate:
@@ -58,6 +57,8 @@ class FrameProcess {
         case FileAction.exclude:
           return null;
         case FileAction.include:
+          break;
+        case null:
           break;
       }
     }
@@ -79,7 +80,7 @@ class FrameProcess {
       if (fileEntity is! File) {
         continue;
       }
-      final file = fileEntity as File;
+      final file = fileEntity;
 
       final name =
           rewriteScreenshotName(path.basenameWithoutExtension(file.path));
@@ -104,8 +105,8 @@ class FrameProcess {
     }
 
     final imageHtml = createdScreenshots
-        .groupBy<String, ProcessScreenshotResult>(
-            (element) => element.config?.previewLabel)
+        .groupBy<String?, ProcessScreenshotResult>(
+            (element) => element.config?.previewLabel ?? '')
         .entries
         .expand((e) {
       e.value.sort((a, b) => a.compareTo(b));
@@ -155,10 +156,10 @@ class FrameProcess {
     <body></body></html>
     ''');
 
-    return createdScreenshots;
+    // return createdScreenshots;
   }
 
-  Future<ProcessScreenshotResult> _processScreenshot(
+  Future<ProcessScreenshotResult?> _processScreenshot(
       Directory srcDir,
       Directory outDir,
       File file,
@@ -191,11 +192,11 @@ class FrameProcess {
 
     final css = await _createCss(
           frame,
-          image.width,
-          image.height,
+          image?.width ?? 0,
+          image?.height ?? 0,
           screenshot: file,
           title: title,
-          keyword: keyword,
+          keyword: keyword ?? '',
         ) +
         '\n${imageConfig?.css ?? ''}\n';
     final indexHtml = File(path.join(workingDir.path, 'index.html'));
@@ -210,8 +211,8 @@ class FrameProcess {
     await cssFile.writeAsString(css);
     final runStopwatch = Stopwatch()..start();
 
-    final width = imageConfig?.cropWidth ?? image.width;
-    final height = imageConfig?.cropHeight ?? image.height;
+    final width = imageConfig?.cropWidth ?? image?.width ?? 0;
+    final height = imageConfig?.cropHeight ?? image?.height ?? 0;
 
     final result = await Process.run(
         chromeBinary,
@@ -219,23 +220,39 @@ class FrameProcess {
           '--headless',
           '--no-sandbox',
           '--screenshot',
+          // '--screenshot=${screenshotFile.path}',
           '--hide-scrollbars',
           '--window-size=${width ~/ pixelRatio},${height ~/ pixelRatio}',
           'index.html',
         ],
         workingDirectory: workingDir.path);
     if (result.exitCode != 0) {
-      throw StateError(
-          'Chrome headless did not succeed. ${result.exitCode}: $result');
+      throw StateError('Chrome headless did not succeed. ${result.exitCode}:\n'
+          '${result.stdout}\n'
+          '${result.stderr}');
     }
+
+    // print(chromeBinary);
+    // print([
+    //   '--headless',
+    //   '--no-sandbox',
+    //   '--screenshot=${screenshotFile.path}',
+    //   '--hide-scrollbars',
+    //   '--window-size=${width ~/ pixelRatio},${height ~/ pixelRatio}',
+    //   'index.html',
+    // ]);
+    // print(workingDir.path);
+    //
+    // stdout.write('Press Enter to continue...');
+    // stdin.readLineSync();
 
     if (!validatedPixelRatio) {
       final screenshot = decodeImage(await screenshotFile.readAsBytes());
-      if (screenshot.width != width) {
+      if (screenshot?.width != width) {
         throw StateError(
             'Generated image width did not match original image width. '
             'Wrong device pixel ratio?'
-            ' was: ${screenshot.width}'
+            ' was: ${screenshot?.width}'
             ' expected: $width'
             ' ratio: $pixelRatio');
       }
@@ -260,24 +277,25 @@ class FrameProcess {
     str = str.replaceAllMapped(RegExp('[^A-Za-z _-]+'), (match) {
       // str.replaceAllMapped(RegExp('[\n\t\'\"]'), (match) {
       final str = match.group(0);
-      return str.runes.map((e) {
-        return '\\${e.toRadixString(16).padLeft(6, '0')} ';
-      }).join('');
+      return str?.runes.map((e) {
+            return '\\${e.toRadixString(16).padLeft(6, '0')} ';
+          }).join('') ??
+          '';
     });
     return '"$str"';
   }
 
   Future<String> _createCss(
-    Frame frame,
+    Frame? frame,
     int targetWidth,
     int targetHeight, {
-    @required File screenshot,
-    String title,
-    String keyword,
+    required File screenshot,
+    String? title,
+    String? keyword,
   }) async {
     final ratio = pixelRatio;
-    final image = decodeImage(await frame.image.readAsBytes());
-    final w = image.width / ratio;
+    final image = decodeImage(await frame!.image.readAsBytes());
+    final w = image!.width / ratio;
     final h = image.height / ratio;
     title ??= '';
     keyword ??= '';
@@ -311,7 +329,7 @@ class FrameProcess {
 ''';
   }
 
-  String _findString(Map<String, String> strings, String filename) {
+  String? _findString(Map<String, String> strings, String filename) {
     for (final entry in strings.entries) {
       if (filename.contains(entry.key)) {
         return entry.value;
@@ -324,14 +342,14 @@ class FrameProcess {
 class ProcessScreenshotResult implements Comparable<ProcessScreenshotResult> {
   ProcessScreenshotResult(this.config, this.path);
 
-  final FrameImage config;
+  final FrameImage? config;
   final String path;
 
   @override
   int compareTo(ProcessScreenshotResult other) {
     if (config?.previewLabel != null) {
       if (other.config?.previewLabel != null) {
-        return config.previewLabel.compareTo(other.config.previewLabel);
+        return config!.previewLabel!.compareTo(other.config!.previewLabel!);
       }
       return 1;
     }

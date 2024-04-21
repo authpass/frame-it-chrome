@@ -6,22 +6,15 @@ part of 'config.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-FrameConfig _$FrameConfigFromJson(Map json) {
-  return FrameConfig(
-    rewrite: (json['rewrite'] as List)
-        ?.map((e) => e == null ? null : FileNameMapping.fromJson(e as Map))
-        ?.toList(),
-    images: (json['images'] as Map)?.map(
-      (k, e) => MapEntry(
-          k as String,
-          e == null
-              ? null
-              : FrameImage.fromJson((e as Map)?.map(
-                  (k, e) => MapEntry(k as String, e),
-                ))),
-    ),
-  );
-}
+FrameConfig _$FrameConfigFromJson(Map json) => FrameConfig(
+      rewrite: (json['rewrite'] as List<dynamic>?)
+          ?.map((e) => FileNameMapping.fromJson(e as Map))
+          .toList(),
+      images: (json['images'] as Map?)?.map(
+        (k, e) => MapEntry(k as String,
+            FrameImage.fromJson(Map<String, dynamic>.from(e as Map))),
+      ),
+    );
 
 Map<String, dynamic> _$FrameConfigToJson(FrameConfig instance) =>
     <String, dynamic>{
@@ -29,13 +22,11 @@ Map<String, dynamic> _$FrameConfigToJson(FrameConfig instance) =>
       'images': instance.images,
     };
 
-FileNameMapping _$FileNameMappingFromJson(Map json) {
-  return FileNameMapping(
-    pattern: json['pattern'] as String,
-    replace: json['replace'] as String,
-    action: _$enumDecode(_$FileActionEnumMap, json['action']),
-  );
-}
+FileNameMapping _$FileNameMappingFromJson(Map json) => FileNameMapping(
+      pattern: json['pattern'] as String?,
+      replace: json['replace'] as String?,
+      action: $enumDecodeNullable(_$FileActionEnumMap, json['action']),
+    );
 
 Map<String, dynamic> _$FileNameMappingToJson(FileNameMapping instance) =>
     <String, dynamic>{
@@ -44,27 +35,6 @@ Map<String, dynamic> _$FileNameMappingToJson(FileNameMapping instance) =>
       'action': _$FileActionEnumMap[instance.action],
     };
 
-T _$enumDecode<T>(
-  Map<T, dynamic> enumValues,
-  dynamic source, {
-  T unknownValue,
-}) {
-  if (source == null) {
-    throw ArgumentError('A value must be provided. Supported values: '
-        '${enumValues.values.join(', ')}');
-  }
-
-  final value = enumValues.entries
-      .singleWhere((e) => e.value == source, orElse: () => null)
-      ?.key;
-
-  if (value == null && unknownValue == null) {
-    throw ArgumentError('`$source` is not one of the supported values: '
-        '${enumValues.values.join(', ')}');
-  }
-  return value ?? unknownValue;
-}
-
 const _$FileActionEnumMap = {
   FileAction.duplicate: 'duplicate',
   FileAction.exclude: 'exclude',
@@ -72,15 +42,13 @@ const _$FileActionEnumMap = {
   FileAction.include: 'include',
 };
 
-FrameImage _$FrameImageFromJson(Map json) {
-  return FrameImage(
-    cropWidth: json['cropWidth'] as int,
-    cropHeight: json['cropHeight'] as int,
-    device: json['device'] as String,
-    previewLabel: json['previewLabel'] as String,
-    css: json['css'] as String,
-  );
-}
+FrameImage _$FrameImageFromJson(Map json) => FrameImage(
+      cropWidth: json['cropWidth'] as int?,
+      cropHeight: json['cropHeight'] as int?,
+      device: json['device'] as String?,
+      previewLabel: json['previewLabel'] as String?,
+      css: json['css'] as String?,
+    );
 
 Map<String, dynamic> _$FrameImageToJson(FrameImage instance) =>
     <String, dynamic>{
