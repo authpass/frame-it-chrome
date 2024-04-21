@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:frameit_chrome/src/frame_colors.dart';
-import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
-
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 
 final _logger = Logger('frameit_frame');
 
@@ -61,9 +60,6 @@ class FramesProvider {
         // return null;
         return File('');
       });
-      if (f == null) {
-        return null;
-      }
       if (!f.existsSync()) {
         _logger.warning('Unable to find frame image for ${e.key}');
         return null;

@@ -143,7 +143,7 @@ Future<Map<String, String>?> _parseStrings(File file) async {
   final tmp = await file.readAsString();
   final tmp2 =
       tmp.replaceAll(RegExp(r';$', multiLine: true), '').replaceAll('=', ':');
-  final result = loadYaml(tmp2) as Map;
+  final result = loadYaml(tmp2) as Map?;
   _logger.fine('got result: $result');
   if (result == null) {
     return null;

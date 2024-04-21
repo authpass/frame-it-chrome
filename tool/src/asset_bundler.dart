@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:archive/archive.dart';
 import 'package:build/build.dart';
 import 'package:glob/glob.dart';
-import 'package:meta/meta.dart';
 import 'package:recase/recase.dart';
 import 'package:source_gen/source_gen.dart';
 

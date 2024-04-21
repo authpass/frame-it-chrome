@@ -105,7 +105,7 @@ class FrameProcess {
     }
 
     final imageHtml = createdScreenshots
-        .groupBy<String, ProcessScreenshotResult>(
+        .groupBy<String?, ProcessScreenshotResult>(
             (element) => element.config?.previewLabel ?? '')
         .entries
         .expand((e) {

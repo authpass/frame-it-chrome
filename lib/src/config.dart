@@ -10,8 +10,8 @@ part 'config.g.dart';
 @JsonSerializable(anyMap: true)
 class FrameConfig {
   FrameConfig({
-    @JsonKey(nullable: true) this.rewrite,
-    @JsonKey(nullable: true) this.images,
+    this.rewrite,
+    this.images,
   });
   factory FrameConfig.fromJson(Map json) => _$FrameConfigFromJson(json);
 
@@ -19,7 +19,9 @@ class FrameConfig {
 
   Map<String, dynamic> toJson() => _$FrameConfigToJson(this);
 
+  @JsonKey()
   final List<FileNameMapping>? rewrite;
+  @JsonKey()
   final Map<String, FrameImage>? images;
 
   static Future<FrameConfig?> load(String baseDir) async {
@@ -45,14 +47,14 @@ enum FileAction {
   include,
 }
 
-@JsonSerializable(nullable: false, anyMap: true)
+@JsonSerializable(anyMap: true)
 class FileNameMapping {
   FileNameMapping({
     this.pattern,
     this.replace,
     // @JsonKey(defaultValue: false) this.duplicate,
     // @JsonKey(defaultValue: false) this.exclude,
-    @JsonKey(defaultValue: FileAction.rename) this.action,
+    this.action,
   });
   factory FileNameMapping.fromJson(Map json) => _$FileNameMappingFromJson(json);
   Map<String, dynamic> toJson() => _$FileNameMappingToJson(this);
@@ -61,13 +63,14 @@ class FileNameMapping {
   final String? replace;
   // final bool duplicate;
   // final bool exclude;
+  @JsonKey(defaultValue: FileAction.rename)
   final FileAction? action;
 
   RegExp? _patternRegExp;
   RegExp get patternRegExp => _patternRegExp ??= RegExp(pattern ?? '');
 }
 
-@JsonSerializable(nullable: true, anyMap: true)
+@JsonSerializable(anyMap: true)
 class FrameImage {
   FrameImage({
     this.cropWidth,
